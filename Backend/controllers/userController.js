@@ -16,16 +16,14 @@ export const getUserProfile = async (req, res) => {
 		const user = await User.findById(req.user.id).select(
 			"-password -__v -createdAt -updatedAt"
 		);
-
-		res.status(200).json({
-			status: "success",
-			data: user,
-		});
+		res.status(200).json({ status: "success", data: user });
 	} catch (error) {
-		res.status(500).json({
-			code: "PROFILE_FETCH_FAILED",
-			message: "Failed to retrieve user profile",
-		});
+		res
+			.status(500)
+			.json({
+				code: "PROFILE_FETCH_FAILED",
+				message: "Failed to retrieve profile",
+			});
 	}
 };
 
@@ -33,20 +31,30 @@ export const updateUserProfile = async (req, res) => {
 	try {
 		const { username, email, profileImage } = req.body;
 
-		// Validation
 		if (username) validateUsername(username);
 		if (email) validateEmail(email);
 
-		const existingUser = await User.findOne({
-			$and: [{ _id: { $ne: req.user.id } }, { $or: [{ username }, { email }] }],
+		const existingUsername = await User.findOne({
+			username,
+			_id: { $ne: req.user.id },
+		});
+		const existingEmail = await User.findOne({
+			email,
+			_id: { $ne: req.user.id },
 		});
 
-		if (existingUser) {
-			const field = existingUser.username === username ? "username" : "email";
-			return res.status(409).json({
-				code: `${field.toUpperCase()}_EXISTS`,
-				message: `${field} is already taken`,
-			});
+		if (existingUsername) {
+			return res
+				.status(409)
+				.json({
+					code: "USERNAME_EXISTS",
+					message: "Username is already taken",
+				});
+		}
+		if (existingEmail) {
+			return res
+				.status(409)
+				.json({ code: "EMAIL_EXISTS", message: "Email is already taken" });
 		}
 
 		const user = await User.findByIdAndUpdate(
@@ -55,18 +63,11 @@ export const updateUserProfile = async (req, res) => {
 			{ new: true, runValidators: true }
 		).select("-password -__v");
 
-		res.status(200).json({
-			status: "success",
-			data: user,
-		});
+		res.status(200).json({ status: "success", data: user });
 	} catch (error) {
 		const code = error.message.startsWith("Invalid")
 			? "VALIDATION_ERROR"
 			: "PROFILE_UPDATE_FAILED";
-
-		res.status(400).json({
-			code,
-			message: error.message,
-		});
+		res.status(400).json({ code, message: error.message });
 	}
 };

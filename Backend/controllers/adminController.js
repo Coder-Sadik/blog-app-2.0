@@ -177,10 +177,9 @@ export const adminRestorePost = async (req, res) => {
 		).select("-__v -comments.__v");
 
 		if (!post) {
-			return res.status(404).json({
-				code: "POST_NOT_FOUND",
-				message: "Post not found",
-			});
+			return res
+				.status(404)
+				.json({ code: "POST_NOT_FOUND", message: "Post not found" });
 		}
 
 		res.status(200).json({
@@ -189,10 +188,9 @@ export const adminRestorePost = async (req, res) => {
 			data: post,
 		});
 	} catch (error) {
-		res.status(500).json({
-			code: "RESTORE_FAILED",
-			message: "Failed to restore post",
-		});
+		res
+			.status(500)
+			.json({ code: "RESTORE_FAILED", message: "Failed to restore post" });
 	}
 };
 

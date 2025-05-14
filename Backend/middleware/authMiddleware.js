@@ -1,7 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
-// Protect middleware for validating JWT
 export const protect = async (req, res, next) => {
 	let token;
 
@@ -61,7 +60,6 @@ export const protect = async (req, res, next) => {
 	}
 };
 
-// Check if the user is not banned
 export const checkNotBanned = (req, res, next) => {
 	if (req.user?.isBanned) {
 		return res.status(403).json({
@@ -72,9 +70,8 @@ export const checkNotBanned = (req, res, next) => {
 	next();
 };
 
-// Admin check middleware
 export const admin = (req, res, next) => {
-	if (req.user?.role === "admin" && !req.user.isDeleted) {
+	if (req.user?.role === "admin") {
 		return next();
 	}
 	res.status(403).json({
